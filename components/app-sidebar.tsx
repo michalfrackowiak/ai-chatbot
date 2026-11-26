@@ -17,8 +17,15 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { BarChart3, Wallet } from 'lucide-react';
 
-export function AppSidebar({ user }: { user: User | undefined }) {
+export function AppSidebar({
+  user,
+  isAdmin = false,
+}: {
+  user: User | undefined;
+  isAdmin?: boolean;
+}) {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
 
@@ -35,7 +42,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               className="flex flex-row gap-3 items-center"
             >
               <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                Chatbot
+                Expenses Copilot
               </span>
             </Link>
             <Tooltip>
@@ -57,6 +64,26 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             </Tooltip>
           </div>
         </SidebarMenu>
+        <nav className="space-y-1 px-2">
+          <Link
+            href="/expenses"
+            onClick={() => setOpenMobile(false)}
+            className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <Wallet className="size-4" />
+            Income &amp; expenses
+          </Link>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setOpenMobile(false)}
+              className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <BarChart3 className="size-4" />
+              AI usage admin
+            </Link>
+          )}
+        </nav>
       </SidebarHeader>
       <SidebarContent>
         <SidebarHistory user={user} />

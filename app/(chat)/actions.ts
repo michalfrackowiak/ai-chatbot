@@ -9,6 +9,7 @@ import {
 } from '@/lib/db/queries';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { myProvider } from '@/lib/ai/providers';
+import { recordModelUsage } from '@/lib/ai/record-usage';
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();
@@ -17,10 +18,12 @@ export async function saveChatModelAsCookie(model: string) {
 
 export async function generateTitleFromUserMessage({
   message,
+  userId,
 }: {
   message: UIMessage;
+  userId: string;
 }) {
-  const { text: title } = await generateText({
+  const { text: title, usage } = await generateText({
     model: myProvider.languageModel('title-model'),
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
@@ -28,6 +31,14 @@ export async function generateTitleFromUserMessage({
     - the title should be a summary of the user's message
     - do not use quotes or colons`,
     prompt: JSON.stringify(message),
+  });
+
+  const tokens = await usage;
+  await recordModelUsage({
+    userId,
+    model: 'title-model',
+    promptTokens: tokens.promptTokens,
+    completionTokens: tokens.completionTokens,
   });
 
   return title;

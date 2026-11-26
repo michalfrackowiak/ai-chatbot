@@ -9,7 +9,12 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  numeric,
+  integer,
+  check,
+  index,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -168,3 +173,89 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const financeTransaction = pgTable(
+  'FinanceTransaction',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    kind: varchar('kind', { enum: ['income', 'expense'] }).notNull(),
+    amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+    description: text('description').notNull(),
+    category: varchar('category', { length: 64 }).notNull(),
+    occurredAt: timestamp('occurredAt').notNull(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    validKind: check(
+      'FinanceTransaction_kind_check',
+      sql`${table.kind} in ('income', 'expense')`,
+    ),
+    positiveAmount: check(
+      'FinanceTransaction_amount_check',
+      sql`${table.amount} > 0`,
+    ),
+    ownerDateIndex: index('FinanceTransaction_userId_occurredAt_idx').on(
+      table.userId,
+      table.occurredAt,
+    ),
+  }),
+);
+
+export type FinanceTransaction = InferSelectModel<typeof financeTransaction>;
+
+export const userAiSettings = pgTable(
+  'UserAISettings',
+  {
+    userId: uuid('userId')
+      .primaryKey()
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    monthlyLimitUsd: numeric('monthlyLimitUsd', { precision: 10, scale: 2 })
+      .notNull()
+      .default('10.00'),
+    adminLimitUsd: numeric('adminLimitUsd', { precision: 10, scale: 2 }),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    nonnegativeLimit: check(
+      'UserAISettings_monthlyLimitUsd_check',
+      sql`${table.monthlyLimitUsd} >= 0`,
+    ),
+    nonnegativeAdminLimit: check(
+      'UserAISettings_adminLimitUsd_check',
+      sql`${table.adminLimitUsd} is null or ${table.adminLimitUsd} >= 0`,
+    ),
+  }),
+);
+
+export type UserAISettings = InferSelectModel<typeof userAiSettings>;
+
+export const aiUsage = pgTable(
+  'AIUsage',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    model: varchar('model', { length: 64 }).notNull(),
+    inputTokens: integer('inputTokens').notNull(),
+    outputTokens: integer('outputTokens').notNull(),
+    costUsd: numeric('costUsd', { precision: 12, scale: 6 }).notNull(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    userDateIndex: index('AIUsage_userId_createdAt_idx').on(
+      table.userId,
+      table.createdAt,
+    ),
+    modelDateIndex: index('AIUsage_model_createdAt_idx').on(
+      table.model,
+      table.createdAt,
+    ),
+  }),
+);
+
+export type AIUsage = InferSelectModel<typeof aiUsage>;

@@ -16,6 +16,8 @@ import {
   getStreamIdsByChatId,
   saveChat,
   saveMessages,
+  getMonthlyAiSpend,
+  getUserAiSettings,
 } from '@/lib/db/queries';
 import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -36,6 +38,9 @@ import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
 import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
+import { getEffectiveAiLimit } from '@/lib/ai/costs';
+import { recordModelUsage } from '@/lib/ai/record-usage';
+import { recordTransaction } from '@/lib/ai/tools/record-transaction';
 
 export const maxDuration = 60;
 
@@ -92,11 +97,28 @@ export async function POST(request: Request) {
       return new ChatSDKError('rate_limit:chat').toResponse();
     }
 
+    const aiSettings = await getUserAiSettings({ userId: session.user.id });
+    const monthlyAiSpend = await getMonthlyAiSpend({
+      userId: session.user.id,
+    });
+
+    const monthlyLimit = getEffectiveAiLimit(
+      Number(aiSettings.monthlyLimitUsd),
+      aiSettings.adminLimitUsd === null
+        ? null
+        : Number(aiSettings.adminLimitUsd),
+    );
+
+    if (monthlyAiSpend >= monthlyLimit) {
+      return new ChatSDKError('rate_limit:usage').toResponse();
+    }
+
     const chat = await getChatById({ id });
 
     if (!chat) {
       const title = await generateTitleFromUserMessage({
         message,
+        userId: session.user.id,
       });
 
       await saveChat({
@@ -153,12 +175,13 @@ export async function POST(request: Request) {
           maxSteps: 5,
           experimental_activeTools:
             selectedChatModel === 'chat-model-reasoning'
-              ? []
+              ? ['recordTransaction']
               : [
                   'getWeather',
                   'createDocument',
                   'updateDocument',
                   'requestSuggestions',
+                  'recordTransaction',
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
@@ -170,6 +193,18 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
+            recordTransaction: recordTransaction({
+              userId: session.user.id,
+              dataStream,
+            }),
+          },
+          onStepFinish: async ({ usage }) => {
+            await recordModelUsage({
+              userId: session.user.id,
+              model: selectedChatModel,
+              promptTokens: usage.promptTokens,
+              completionTokens: usage.completionTokens,
+            });
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {

@@ -11,6 +11,8 @@ import {
   inArray,
   lt,
   type SQL,
+  sum,
+  sql,
 } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
@@ -27,12 +29,16 @@ import {
   type DBMessage,
   type Chat,
   stream,
+  financeTransaction,
+  userAiSettings,
+  aiUsage,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
 import { generateHashedPassword } from './utils';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { ChatSDKError } from '../errors';
+import { DEFAULT_MONTHLY_AI_LIMIT_USD } from '@/lib/ai/costs';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -533,6 +539,295 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get stream ids by chat id',
+    );
+  }
+}
+
+export async function getFinanceTransactions({ userId }: { userId: string }) {
+  try {
+    return await db
+      .select()
+      .from(financeTransaction)
+      .where(eq(financeTransaction.userId, userId))
+      .orderBy(
+        desc(financeTransaction.occurredAt),
+        desc(financeTransaction.createdAt),
+      );
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get finance transactions',
+    );
+  }
+}
+
+export async function createFinanceTransaction({
+  userId,
+  kind,
+  amount,
+  description,
+  category,
+  occurredAt,
+}: {
+  userId: string;
+  kind: 'income' | 'expense';
+  amount: number;
+  description: string;
+  category: string;
+  occurredAt: Date;
+}) {
+  try {
+    const [created] = await db
+      .insert(financeTransaction)
+      .values({
+        userId,
+        kind,
+        amount: amount.toFixed(2),
+        description,
+        category,
+        occurredAt,
+      })
+      .returning();
+
+    return created;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to create finance transaction',
+    );
+  }
+}
+
+export async function deleteFinanceTransaction({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}) {
+  try {
+    const [deleted] = await db
+      .delete(financeTransaction)
+      .where(
+        and(
+          eq(financeTransaction.id, id),
+          eq(financeTransaction.userId, userId),
+        ),
+      )
+      .returning();
+
+    return deleted;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to delete finance transaction',
+    );
+  }
+}
+
+export async function getUserAiSettings({ userId }: { userId: string }) {
+  try {
+    const [settings] = await db
+      .select()
+      .from(userAiSettings)
+      .where(eq(userAiSettings.userId, userId));
+
+    if (settings) return settings;
+
+    const [created] = await db
+      .insert(userAiSettings)
+      .values({ userId })
+      .onConflictDoNothing()
+      .returning();
+
+    if (created) return created;
+
+    const [existing] = await db
+      .select()
+      .from(userAiSettings)
+      .where(eq(userAiSettings.userId, userId));
+
+    if (!existing) throw new Error('Failed to initialize AI settings');
+    return existing;
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to get AI settings');
+  }
+}
+
+export async function setUserAiLimit({
+  userId,
+  monthlyLimitUsd,
+}: {
+  userId: string;
+  monthlyLimitUsd: number;
+}) {
+  try {
+    const [settings] = await db
+      .insert(userAiSettings)
+      .values({ userId, monthlyLimitUsd: monthlyLimitUsd.toFixed(2) })
+      .onConflictDoUpdate({
+        target: userAiSettings.userId,
+        set: {
+          monthlyLimitUsd: monthlyLimitUsd.toFixed(2),
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    return settings;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update AI usage limit',
+    );
+  }
+}
+
+export async function setAdminAiLimit({
+  userId,
+  adminLimitUsd,
+}: {
+  userId: string;
+  adminLimitUsd: number | null;
+}) {
+  try {
+    const [settings] = await db
+      .insert(userAiSettings)
+      .values({
+        userId,
+        adminLimitUsd: adminLimitUsd?.toFixed(2) ?? null,
+      })
+      .onConflictDoUpdate({
+        target: userAiSettings.userId,
+        set: {
+          adminLimitUsd: adminLimitUsd?.toFixed(2) ?? null,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    return settings;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update admin AI usage limit',
+    );
+  }
+}
+
+export async function getMonthlyAiSpend({
+  userId,
+  monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+}: {
+  userId: string;
+  monthStart?: Date;
+}) {
+  try {
+    const [result] = await db
+      .select({ amount: sum(aiUsage.costUsd) })
+      .from(aiUsage)
+      .where(
+        and(eq(aiUsage.userId, userId), gte(aiUsage.createdAt, monthStart)),
+      );
+
+    return Number(result?.amount ?? 0);
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to get AI spend');
+  }
+}
+
+export async function recordAiUsage({
+  userId,
+  model,
+  inputTokens,
+  outputTokens,
+  costUsd,
+}: {
+  userId: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+}) {
+  try {
+    await db.insert(aiUsage).values({
+      userId,
+      model,
+      inputTokens,
+      outputTokens,
+      costUsd: costUsd.toFixed(6),
+    });
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to record AI usage');
+  }
+}
+
+export async function getAdminAiUsage({
+  monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+}: {
+  monthStart?: Date;
+} = {}) {
+  try {
+    const usage = await db
+      .select({
+        model: aiUsage.model,
+        requests: count(aiUsage.id),
+        inputTokens: sum(aiUsage.inputTokens),
+        outputTokens: sum(aiUsage.outputTokens),
+        costUsd: sum(aiUsage.costUsd),
+      })
+      .from(aiUsage)
+      .where(gte(aiUsage.createdAt, monthStart))
+      .groupBy(aiUsage.model);
+
+    const accounts = await db
+      .select({
+        id: user.id,
+        email: user.email,
+        monthlyLimitUsd: userAiSettings.monthlyLimitUsd,
+        adminLimitUsd: userAiSettings.adminLimitUsd,
+        requests: count(aiUsage.id),
+        inputTokens: sum(aiUsage.inputTokens),
+        outputTokens: sum(aiUsage.outputTokens),
+        costUsd: sum(aiUsage.costUsd),
+      })
+      .from(user)
+      .leftJoin(
+        aiUsage,
+        and(eq(aiUsage.userId, user.id), gte(aiUsage.createdAt, monthStart)),
+      )
+      .leftJoin(userAiSettings, eq(userAiSettings.userId, user.id))
+      .groupBy(
+        user.id,
+        user.email,
+        userAiSettings.monthlyLimitUsd,
+        userAiSettings.adminLimitUsd,
+      )
+      .orderBy(desc(sql`coalesce(sum(${aiUsage.costUsd}), 0)`));
+
+    return {
+      models: usage.map((row) => ({
+        ...row,
+        inputTokens: Number(row.inputTokens ?? 0),
+        outputTokens: Number(row.outputTokens ?? 0),
+        costUsd: Number(row.costUsd ?? 0),
+      })),
+      users: accounts.map((row) => ({
+        ...row,
+        monthlyLimitUsd: Number(
+          row.monthlyLimitUsd ?? DEFAULT_MONTHLY_AI_LIMIT_USD,
+        ),
+        adminLimitUsd:
+          row.adminLimitUsd === null ? null : Number(row.adminLimitUsd),
+        inputTokens: Number(row.inputTokens ?? 0),
+        outputTokens: Number(row.outputTokens ?? 0),
+        costUsd: Number(row.costUsd ?? 0),
+      })),
+    };
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get admin AI usage',
     );
   }
 }
