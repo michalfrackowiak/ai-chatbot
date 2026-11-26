@@ -40,7 +40,7 @@ import { ChatSDKError } from '../errors';
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
-const db = drizzle(client);
+export const db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
   try {
@@ -455,12 +455,27 @@ export async function deleteMessagesByChatIdAfterTimestamp({
 export async function updateChatVisiblityById({
   chatId,
   visibility,
+  userId,
 }: {
   chatId: string;
   visibility: 'private' | 'public';
+  userId: string;
 }) {
   try {
-    return await db.update(chat).set({ visibility }).where(eq(chat.id, chatId));
+    const [updated] = await db
+      .update(chat)
+      .set({ visibility })
+      .where(
+        and(
+          eq(chat.id, chatId),
+          eq(chat.userId, userId),
+          visibility === 'public'
+            ? eq(chat.containsLedgerData, false)
+            : undefined,
+        ),
+      )
+      .returning({ id: chat.id });
+    return !!updated;
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',

@@ -9,6 +9,10 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  integer,
+  bigint,
+  date,
+  index,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -23,6 +27,7 @@ export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').notNull(),
   title: text('title').notNull(),
+  containsLedgerData: boolean('containsLedgerData').notNull().default(false),
   userId: uuid('userId')
     .notNull()
     .references(() => user.id),
@@ -168,3 +173,45 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const ledgerEntry = pgTable(
+  'LedgerEntry',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    kind: varchar('kind', { enum: ['income', 'expense'] }).notNull(),
+    amountMinor: integer('amountMinor').notNull(),
+    currency: varchar('currency', { length: 3 }).notNull(),
+    description: text('description').notNull(),
+    date: date('date').notNull(),
+  },
+  (table) => ({
+    ownerDate: index('ledger_owner_date').on(table.userId, table.date),
+  }),
+);
+
+export type LedgerEntry = InferSelectModel<typeof ledgerEntry>;
+
+export const aiSettings = pgTable('AiSettings', {
+  id: integer('id').primaryKey(),
+  monthlyLimit: integer('monthlyLimit'),
+  monthlyBudgetMicros: bigint('monthlyBudgetMicros', { mode: 'number' }),
+});
+
+export const aiCall = pgTable(
+  'AiCall',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    createdAt: timestamp('createdAt', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    model: text('model').notNull(),
+    inputTokens: integer('inputTokens'),
+    outputTokens: integer('outputTokens'),
+    imageCount: integer('imageCount'),
+    costMicros: integer('costMicros'),
+  },
+  (table) => ({ created: index('ai_call_created').on(table.createdAt) }),
+);
