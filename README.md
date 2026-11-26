@@ -100,3 +100,23 @@ pnpm db:migrate
 pnpm exec playwright install chromium
 pnpm test
 ```
+
+### Income, expenses, and AI costs
+
+The `/expenses` dashboard stores private income and expense entries per account.
+You can add entries manually or ask the assistant to record them; the dashboard
+refreshes as soon as the assistant finishes the entry. The dashboard can export
+an HTML report or open a print-ready report that can be saved as PDF.
+
+AI usage is estimated from provider-reported token counts. The current estimates
+use $2/$10 per million input/output tokens for Grok 2 and $0.30/$0.50 for
+Grok 3 Mini; check xAI's current pricing before budgeting because provider rates
+may change. These figures do not include image-generation, hosting, database,
+storage, or network charges, which depend on your deployment and usage. Each account can set a
+monthly AI budget under `/expenses`; new AI requests are blocked after its
+recorded monthly spend reaches that limit. The limit is enforced between
+requests, so the final request can exceed it by its cost.
+
+Set `ADMIN_EMAILS` to a comma-separated list of account emails to enable the
+`/admin` usage panel. It reports monthly estimated AI spend by model and account,
+and lets admins set a maximum monthly AI budget per account.

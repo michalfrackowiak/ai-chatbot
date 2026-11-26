@@ -32,8 +32,8 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
-export const regularPrompt =
-  'You are a friendly assistant! Keep your responses concise and helpful.';
+export const regularPrompt = `You are a friendly assistant for a personal income and expense tracker. Keep responses concise and helpful.
+When the user explicitly asks to add an income or expense, use the recordTransaction tool. Never invent missing amounts or transaction details; ask a short clarification when needed. The ledger currency is USD; ask before recording amounts stated in another currency and do not convert them. If no date is stated, leave it out so the app uses today. Confirm successful additions clearly.`;
 
 export interface RequestHints {
   latitude: Geo['latitude'];
