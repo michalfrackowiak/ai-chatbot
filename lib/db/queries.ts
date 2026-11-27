@@ -27,6 +27,8 @@ import {
   type DBMessage,
   type Chat,
   stream,
+  income,
+  expense,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -534,5 +536,98 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
       'bad_request:database',
       'Failed to get stream ids by chat id',
     );
+  }
+}
+
+export async function createIncome({
+  amount,
+  description,
+  userId,
+}: {
+  amount: string;
+  description: string;
+  userId: string;
+}) {
+  try {
+    return await db.insert(income).values({
+      amount,
+      description,
+      userId,
+      createdAt: new Date(),
+    });
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to create income');
+  }
+}
+
+export async function createExpense({
+  amount,
+  description,
+  userId,
+}: {
+  amount: string;
+  description: string;
+  userId: string;
+}) {
+  try {
+    return await db.insert(expense).values({
+      amount,
+      description,
+      userId,
+      createdAt: new Date(),
+    });
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to create expense');
+  }
+}
+
+export async function getUsageLimits({ userId }: { userId: string }) {
+  try {
+    const [limits] = await db
+      .select()
+      .from(usageLimits)
+      .where(eq(usageLimits.userId, userId))
+      .execute();
+
+    return limits;
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to get usage limits');
+  }
+}
+
+export async function updateUsageLimits({
+  userId,
+  monthlyLimit,
+  weeklyLimit,
+}: {
+  userId: string;
+  monthlyLimit: string;
+  weeklyLimit: string;
+}) {
+  try {
+    // Try to update existing limits
+    const [existing] = await db
+      .select()
+      .from(usageLimits)
+      .where(eq(usageLimits.userId, userId))
+      .execute();
+
+    if (existing) {
+      return await db
+        .update(usageLimits)
+        .set({ monthlyLimit, weeklyLimit, updatedAt: new Date() })
+        .where(eq(usageLimits.userId, userId));
+    }
+
+    // Create new limits
+    return await db.insert(usageLimits).values({
+      userId,
+      monthlyLimit,
+      weeklyLimit,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to update usage limits');
   }
 }

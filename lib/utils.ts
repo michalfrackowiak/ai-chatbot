@@ -89,3 +89,27 @@ export function getTrailingMessageId({
 export function sanitizeText(text: string) {
   return text.replace('<has_function_call>', '');
 }
+
+export function parseIncomeExpenseFromText(text: string) {
+  // Pattern: "add income $100 for salary" or "I earned $100 as salary"
+  const incomePattern = /(?:add |earned|received|made)\s+income\s+\$?([\d,.]+)\s+(?:for|as)\s+(.+)/i;
+  const incomeMatch = text.match(incomePattern);
+  
+  if (incomeMatch) {
+    const amount = incomeMatch[1].replace(/,/g, '');
+    const description = incomeMatch[2].trim();
+    return { type: 'income', amount, description };
+  }
+  
+  // Pattern: "add expense $50 for coffee" or "I spent $50 on coffee"
+  const expensePattern = /(?:add |spent|paid)\s+expense\s+\$?([\d,.]+)\s+(?:for|on)\s+(.+)/i;
+  const expenseMatch = text.match(expensePattern);
+  
+  if (expenseMatch) {
+    const amount = expenseMatch[1].replace(/,/g, '');
+    const description = expenseMatch[2].trim();
+    return { type: 'expense', amount, description };
+  }
+  
+  return null;
+}
