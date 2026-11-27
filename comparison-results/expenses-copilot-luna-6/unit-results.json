@@ -1,0 +1,18 @@
+{
+  "branch": "expenses-copilot-luna-6",
+  "suite": "unit",
+  "checks": [
+    {
+      "id": "u-cost-evidence",
+      "requirement": "R5",
+      "name": "model pricing is correct",
+      "status": "pass"
+    },
+    {
+      "id": "u-limits",
+      "requirement": "R6",
+      "name": "admin cap overrides personal cap",
+      "status": "pass"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "branch": "expenses-gpt-6-2-sol",
+  "suite": "unit",
+  "checks": [
+    {
+      "id": "u-money",
+      "requirement": "R1",
+      "name": "entry amounts use minor units",
+      "status": "pass"
+    },
+    {
+      "id": "u-validation",
+      "requirement": "R1",
+      "name": "invalid precision is rejected",
+      "status": "pass"
+    },
+    {
+      "id": "u-cost-evidence",
+      "requirement": "R5",
+      "name": "cost helpers are present",
+      "status": "pass"
+    }
+  ]
+}

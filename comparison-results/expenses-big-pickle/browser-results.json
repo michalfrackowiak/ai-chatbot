@@ -1,0 +1,68 @@
+{
+  "branch": "expenses-big-pickle",
+  "suite": "browser",
+  "checks": [
+    {
+      "id": "b-chat-prompt",
+      "requirement": "R2",
+      "name": "assistant accepts a natural expense",
+      "status": "pass"
+    },
+    {
+      "id": "b-finance-list",
+      "requirement": "R1",
+      "name": "finance screen lists income and expenses",
+      "status": "pass"
+    },
+    {
+      "id": "b-form-submit",
+      "requirement": "R1",
+      "name": "an entry can be added through the form",
+      "status": "pass"
+    },
+    {
+      "id": "b-admin-login",
+      "requirement": "R6",
+      "name": "administrator can sign in",
+      "status": "pass"
+    },
+    {
+      "id": "b-admin-panel",
+      "requirement": "R6",
+      "name": "admin panel renders spend and usage",
+      "status": "pass"
+    },
+    {
+      "id": "b-admin-cost",
+      "requirement": "R5",
+      "name": "admin exposes a running cost estimate",
+      "status": "pass"
+    },
+    {
+      "id": "b-admin-limits",
+      "requirement": "R6",
+      "name": "a usage limit can be set",
+      "status": "pass"
+    },
+    {
+      "id": "b-api-create",
+      "requirement": "R1",
+      "name": "API creates an entry that appears in the list",
+      "status": "pass"
+    },
+    {
+      "id": "b-reports",
+      "requirement": "R4",
+      "name": "HTML and PDF reports render the new entry",
+      "status": "fail",
+      "detail": "apiRequestContext.get: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - → GET http://localhost:3115/api/reports?format=html\u001b[22m\n\u001b[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\u001b[22m\n\u001b[2m    - accept: */*\u001b[22m\n\u001b[2m    - accept-encoding: gzip,deflate,br\u001b[22m\n\u001b[2m    - cookie: authjs.callback-url=http%3A%2F%2Flocalhost%3A3115%2F; authjs.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiS29fV3VFRzVXYzBDSFM1aGVJb3J0XzF3VUZZcFFwTVpYVGpvSURBcVIwYnNCdTZsU2NrMWtNWUp5czdNbDNYWU5MYndVc01RcGJ0QVJsUndlSUdVZ1EifQ..Cj4dKcoeUOdAdYFqdX7aJA.y3mjWswKe2MzEzGzfPuvAp-ODd6Wy932LOUc1o9Sjk9d7q2ABZ0tHa6pfVH6ojWPMUXDWEKQsXhZgQiR1VGs0Wue5oOuhMrp5uiMs_aSKAPWicRZl3lrbtMErbijiBoNZXzEi5oBfOQIVqv_vI3ke0yR-mI3JI57KZR_9dBxdMjIbr2iRHA8cA76rWrs-oIw024fZVP35HRvinnibHZG_QyZndZr39aOgzyY71Ne02auQCIBxmIO7Q0YYkOBUvJe64oB9u3ADLCv_Y1bBIXQnFaWSEp8yRJNTpZrM8j1uUg.gMi86SbBdQBSpkHSoO_j1jQ_Lj_-jTCmHbpK8Mxe1s0\u001b[22m\n"
+    },
+    {
+      "id": "b-sample-data",
+      "requirement": "R3",
+      "name": "no sample-data API discovered",
+      "status": "skip",
+      "detail": ""
+    }
+  ]
+}

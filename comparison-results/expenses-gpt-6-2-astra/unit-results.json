@@ -1,0 +1,18 @@
+{
+  "branch": "expenses-gpt-6-2-astra",
+  "suite": "unit",
+  "checks": [
+    {
+      "id": "u-money",
+      "requirement": "R1",
+      "name": "money formats positive and negative values",
+      "status": "pass"
+    },
+    {
+      "id": "u-cost-evidence",
+      "requirement": "R5",
+      "name": "usage module is present",
+      "status": "pass"
+    }
+  ]
+}
