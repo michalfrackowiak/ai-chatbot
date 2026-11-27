@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
+import { toast } from 'sonner';
 import { unstable_serialize } from 'swr/infinite';
 import { updateChatVisibility } from '@/app/(chat)/actions';
 import {
@@ -35,14 +36,23 @@ export function useChatVisibility({
     return chat.visibility;
   }, [history, chatId, localVisibility]);
 
-  const setVisibilityType = (updatedVisibilityType: VisibilityType) => {
-    setLocalVisibility(updatedVisibilityType);
-    mutate(unstable_serialize(getChatHistoryPaginationKey));
-
-    updateChatVisibility({
-      chatId: chatId,
-      visibility: updatedVisibilityType,
-    });
+  const setVisibilityType = async (updatedVisibilityType: VisibilityType) => {
+    try {
+      const updated = await updateChatVisibility({
+        chatId,
+        visibility: updatedVisibilityType,
+      });
+      if (!updated) {
+        toast.error(
+          'Unable to change visibility. Chats with ledger activity stay private.',
+        );
+        return;
+      }
+      await setLocalVisibility(updatedVisibilityType);
+      await mutate(unstable_serialize(getChatHistoryPaginationKey));
+    } catch {
+      toast.error('Unable to change chat visibility.');
+    }
   };
 
   return { visibilityType, setVisibilityType };

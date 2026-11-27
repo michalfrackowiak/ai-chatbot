@@ -19,7 +19,6 @@ import type { Session } from 'next-auth';
 import { useSearchParams } from 'next/navigation';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useAutoResume } from '@/hooks/use-auto-resume';
-import { ChatSDKError } from '@/lib/errors';
 
 export function Chat({
   id,
@@ -74,12 +73,10 @@ export function Chat({
       mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
     onError: (error) => {
-      if (error instanceof ChatSDKError) {
-        toast({
-          type: 'error',
-          description: error.message,
-        });
-      }
+      toast({
+        type: 'error',
+        description: error.message,
+      });
     },
   });
 
@@ -118,7 +115,7 @@ export function Chat({
 
   return (
     <>
-      <div className="flex flex-col min-w-0 h-dvh bg-background">
+      <div className="flex flex-col min-w-0 h-[calc(100dvh-3rem)] bg-background">
         <ChatHeader
           chatId={id}
           selectedModelId={initialChatModel}

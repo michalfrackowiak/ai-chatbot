@@ -1,10 +1,8 @@
-import {
-  customProvider,
-  extractReasoningMiddleware,
-  wrapLanguageModel,
-} from 'ai';
+import { customProvider } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { isTestEnvironment } from '../constants';
+import { meterModel } from './meter-model';
+import { imageModel, reasoningModelId, textModel } from './model-pricing';
 import {
   artifactModel,
   chatModel,
@@ -23,15 +21,12 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        'chat-model': xai('grok-2-vision-1212'),
-        'chat-model-reasoning': wrapLanguageModel({
-          model: xai('grok-3-mini-beta'),
-          middleware: extractReasoningMiddleware({ tagName: 'think' }),
-        }),
-        'title-model': xai('grok-2-1212'),
-        'artifact-model': xai('grok-2-1212'),
+        'chat-model': meterModel(xai(textModel)),
+        'chat-model-reasoning': meterModel(xai(reasoningModelId)),
+        'title-model': meterModel(xai(textModel)),
+        'artifact-model': meterModel(xai(textModel)),
       },
       imageModels: {
-        'small-model': xai.image('grok-2-image'),
+        'small-model': xai.image(imageModel),
       },
     });
