@@ -6,6 +6,7 @@ import {
   json,
   uuid,
   text,
+  integer,
   primaryKey,
   foreignKey,
   boolean,
@@ -167,4 +168,55 @@ export const stream = pgTable(
   }),
 );
 
-export type Stream = InferSelectModel<typeof stream>;
+export const income = pgTable('Income', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  amount: text('amount').notNull(),
+  description: text('description').notNull(),
+  date: timestamp('date').notNull().defaultNow(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type Income = InferSelectModel<typeof income>;
+
+export const expense = pgTable('Expense', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  amount: text('amount').notNull(),
+  description: text('description').notNull(),
+  date: timestamp('date').notNull().defaultNow(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type Expense = InferSelectModel<typeof expense>;
+
+export const aiUsageLog = pgTable('AIUsageLog', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  model: varchar('model', { length: 64 }).notNull(),
+  promptTokens: integer('promptTokens').notNull(),
+  completionTokens: integer('completionTokens').notNull(),
+  cost: text('cost').notNull(),
+  date: timestamp('date').notNull().defaultNow(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+});
+
+export const usageLimits = pgTable('UsageLimits', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  monthlyLimit: text('monthlyLimit').notNull().default('100'),
+  weeklyLimit: text('weeklyLimit').notNull().default('25'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type UsageLimits = InferSelectModel<typeof usageLimits>;
+
+export type AIUsageLog = InferSelectModel<typeof aiUsageLog>;
