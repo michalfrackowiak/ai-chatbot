@@ -9,6 +9,8 @@ import {
 } from '@/lib/db/queries';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { myProvider } from '@/lib/ai/providers';
+import { recordAiUsage } from '@/lib/db/finance-queries';
+import { calculateCostMicros } from '@/lib/ai/pricing';
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();
@@ -17,10 +19,14 @@ export async function saveChatModelAsCookie(model: string) {
 
 export async function generateTitleFromUserMessage({
   message,
+  userId,
+  chatId,
 }: {
   message: UIMessage;
+  userId?: string;
+  chatId?: string;
 }) {
-  const { text: title } = await generateText({
+  const { text: title, usage } = await generateText({
     model: myProvider.languageModel('title-model'),
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
@@ -29,6 +35,21 @@ export async function generateTitleFromUserMessage({
     - do not use quotes or colons`,
     prompt: JSON.stringify(message),
   });
+
+  if (userId && usage) {
+    await recordAiUsage({
+      userId,
+      chatId,
+      model: 'title-model',
+      promptTokens: usage.promptTokens,
+      completionTokens: usage.completionTokens,
+      costMicros: calculateCostMicros({
+        model: 'title-model',
+        promptTokens: usage.promptTokens,
+        completionTokens: usage.completionTokens,
+      }),
+    });
+  }
 
   return title;
 }

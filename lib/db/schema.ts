@@ -9,6 +9,7 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  integer,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -168,3 +169,60 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+/**
+ * Income and expenses. `amount` is stored in cents (integers, never floats)
+ * so that totals and reports are exact.
+ */
+export const transaction = pgTable('Transaction', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  type: varchar('type', { enum: ['income', 'expense'] }).notNull(),
+  amount: integer('amount').notNull(),
+  category: varchar('category', { length: 64 }).notNull(),
+  description: text('description').notNull(),
+  date: timestamp('date').notNull().defaultNow(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type Transaction = InferSelectModel<typeof transaction>;
+export type TransactionType = Transaction['type'];
+
+/**
+ * One row per AI request (including title generation). Costs are stored in
+ * micro-dollars (USD * 1,000,000) to avoid floating point rounding in the
+ * admin dashboard and usage-limit checks.
+ */
+export const aiUsage = pgTable('AiUsage', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  chatId: uuid('chatId'),
+  model: varchar('model', { length: 64 }).notNull(),
+  promptTokens: integer('promptTokens').notNull().default(0),
+  completionTokens: integer('completionTokens').notNull().default(0),
+  costMicros: integer('costMicros').notNull().default(0),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type AiUsage = InferSelectModel<typeof aiUsage>;
+
+/**
+ * Per-user monthly AI usage caps. When a row is missing, the global defaults
+ * in `lib/ai/pricing.ts` apply.
+ */
+export const usageLimit = pgTable('UsageLimit', {
+  userId: uuid('userId')
+    .primaryKey()
+    .notNull()
+    .references(() => user.id),
+  monthlyCostMicros: integer('monthlyCostMicros').notNull(),
+  monthlyTokenLimit: integer('monthlyTokenLimit').notNull(),
+  enabled: boolean('enabled').notNull().default(true),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type UsageLimit = InferSelectModel<typeof usageLimit>;

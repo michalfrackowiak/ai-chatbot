@@ -6,7 +6,23 @@ import { authConfig } from './auth.config';
 import { DUMMY_PASSWORD } from '@/lib/constants';
 import type { DefaultJWT } from 'next-auth/jwt';
 
-export type UserType = 'guest' | 'regular';
+export type UserType = 'guest' | 'regular' | 'admin';
+
+/**
+ * Admins are configured with a comma-separated ADMIN_EMAILS environment
+ * variable. This avoids adding a role column (and a migration to every
+ * deployment) while keeping admin checks in one place.
+ */
+export function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+
+  return adminEmails.includes(email.toLowerCase());
+}
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
@@ -59,7 +75,10 @@ export const {
 
         if (!passwordsMatch) return null;
 
-        return { ...user, type: 'regular' };
+        return {
+          ...user,
+          type: isAdminEmail(user.email) ? 'admin' : 'regular',
+        };
       },
     }),
     Credentials({
