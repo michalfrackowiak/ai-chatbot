@@ -16,9 +16,13 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import { Ledger } from './ledger';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-export function AppSidebar({ user }: { user: User | undefined }) {
+export function AppSidebar({
+  user,
+  admin,
+}: { user: User | undefined; admin: boolean }) {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
 
@@ -59,6 +63,12 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        {admin && (
+          <Link className="px-3 text-sm underline" href="/admin">
+            AI usage admin
+          </Link>
+        )}
+        {user?.id && <Ledger key={user.id} owner={user.id} />}
         <SidebarHistory user={user} />
       </SidebarContent>
       <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>

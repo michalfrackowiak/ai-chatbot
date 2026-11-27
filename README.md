@@ -34,9 +34,21 @@
 - [Auth.js](https://authjs.dev)
   - Simple and secure authentication
 
+## Income and expenses
+
+Open **Income & expenses** in the chat sidebar to record a dated USD transaction or load three sample entries. In a private conversation, try “Record $24.50 for groceries today”, then “Change that grocery expense to $21”. The standard chat model can list, add, edit and delete your entries. Financial details shared in a public conversation are visible to its readers.
+
+Open **HTML / PDF report** for your full ledger with income, expenses and net totals. Download the HTML file or choose **Print / Save as PDF** and select your browser's PDF destination.
+
+## Operating costs and limits
+
+Run `pnpm db:migrate` and set `FINANCE_ADMIN_IDS` to the comma-separated database user UUIDs of your administrators. Open `/admin` for monthly model spend, usage that is still unpriced, and a global daily model-call limit. Each title, model step and artifact generation consumes a call. Failed or interrupted requests also consume a slot. The limit resets at midnight UTC.
+
+The estimate uses $1.25 per million input tokens and $2.50 per million output tokens for Grok 4.3. For example, 10,000 interactions averaging 2,000 input and 500 output tokens across all their model calls cost **$37.50** in text generation. The app separately estimates image generation at $0.07 per successful image. Provider discounts, incomplete streams and price changes can affect billed totals. Add your actual hosting, Postgres, object storage, bandwidth and optional Redis charges to estimate your monthly operating cost. [xAI text pricing](https://docs.x.ai/developers/migration/may-15-retirement)
+
 ## Model Providers
 
-This template ships with [xAI](https://x.ai) `grok-2-1212` as the default chat model. However, with the [AI SDK](https://sdk.vercel.ai/docs), you can switch LLM providers to [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
+The production language models use xAI Grok 4.3. The test environment uses the existing mock models.
 
 ## Deploy Your Own
 

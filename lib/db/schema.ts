@@ -9,6 +9,12 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  integer,
+  bigint,
+  date,
+  numeric,
+  unique,
+  index,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -18,6 +24,41 @@ export const user = pgTable('User', {
 });
 
 export type User = InferSelectModel<typeof user>;
+
+export const ledger = pgTable(
+  'ledger',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    owner: uuid('owner')
+      .notNull()
+      .references(() => user.id),
+    kind: text('kind', { enum: ['income', 'expense'] }).notNull(),
+    description: text('description').notNull(),
+    cents: bigint('cents', { mode: 'number' }).notNull(),
+    booked: date('booked').notNull(),
+    sample: text('sample'),
+  },
+  (t) => ({ samples: unique('ledger_owner_sample_key').on(t.owner, t.sample) }),
+);
+
+export const aiPolicy = pgTable('ai_policy', {
+  id: integer('id').primaryKey(),
+  dailyLimit: integer('daily_limit'),
+});
+export const aiCall = pgTable(
+  'ai_call',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    started: timestamp('started', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    model: text('model').notNull(),
+    input: integer('input'),
+    output: integer('output'),
+    usd: numeric('usd'),
+  },
+  (t) => ({ startedIndex: index('ai_call_started').on(t.started) }),
+);
 
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),

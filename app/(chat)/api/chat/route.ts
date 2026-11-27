@@ -36,6 +36,9 @@ import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
 import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
+import { tool } from 'ai';
+import { z } from 'zod';
+import { change, manage } from '@/lib/finance';
 
 export const maxDuration = 60;
 
@@ -153,8 +156,9 @@ export async function POST(request: Request) {
           maxSteps: 5,
           experimental_activeTools:
             selectedChatModel === 'chat-model-reasoning'
-              ? []
+              ? ['ledger']
               : [
+                  'ledger',
                   'getWeather',
                   'createDocument',
                   'updateDocument',
@@ -163,6 +167,18 @@ export async function POST(request: Request) {
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools: {
+            ledger: tool({
+              description:
+                'Manage USD transactions. List entries to identify a target before editing or deleting. Ask if ambiguous. Today in UTC is ' +
+                new Date().toISOString().slice(0, 10),
+              parameters: z.object({ transaction: change }),
+              execute: async ({ transaction }) => {
+                const result = await manage(session.user.id, transaction);
+                if (transaction.action !== 'list')
+                  dataStream.writeData({ type: 'ledger-changed', content: '' });
+                return result;
+              },
+            }),
             getWeather,
             createDocument: createDocument({ session, dataStream }),
             updateDocument: updateDocument({ session, dataStream }),
@@ -219,7 +235,9 @@ export async function POST(request: Request) {
           sendReasoning: true,
         });
       },
-      onError: () => {
+      onError: (error) => {
+        if (error instanceof ChatSDKError && error.type === 'rate_limit')
+          return 'The daily AI call limit has been reached.';
         return 'Oops, an error occurred!';
       },
     });

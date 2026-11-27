@@ -12,6 +12,11 @@ import {
   titleModel,
 } from './models.test';
 
+import { meter } from './usage';
+
+const textModel = () =>
+  wrapLanguageModel({ model: xai('grok-4.3'), middleware: meter });
+
 export const myProvider = isTestEnvironment
   ? customProvider({
       languageModels: {
@@ -23,13 +28,13 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        'chat-model': xai('grok-2-vision-1212'),
+        'chat-model': textModel(),
         'chat-model-reasoning': wrapLanguageModel({
-          model: xai('grok-3-mini-beta'),
+          model: textModel(),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': xai('grok-2-1212'),
-        'artifact-model': xai('grok-2-1212'),
+        'title-model': textModel(),
+        'artifact-model': textModel(),
       },
       imageModels: {
         'small-model': xai.image('grok-2-image'),
