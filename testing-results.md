@@ -1,5 +1,8 @@
 # Testing results — v2 cross-branch comparison
 
+For the full report with embedded screenshots, per-check results, tooling and
+summaries, see [`TESTING_REPORT.md`](TESTING_REPORT.md).
+
 Branch: `test-results-v2-hy4`
 Commit: `3197331`
 
