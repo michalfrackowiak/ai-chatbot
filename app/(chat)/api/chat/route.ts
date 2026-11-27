@@ -23,6 +23,18 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import {
+  addTransaction,
+  editTransaction,
+  listTransactions,
+  removeTransaction,
+} from '@/lib/ai/tools/transactions';
+import {
+  getMonthlyUsage,
+  getUsageLimit,
+  recordAiUsage,
+} from '@/lib/db/finance-queries';
+import { calculateCostMicros } from '@/lib/ai/pricing';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
@@ -92,11 +104,34 @@ export async function POST(request: Request) {
       return new ChatSDKError('rate_limit:chat').toResponse();
     }
 
+    const [monthlyUsage, usageLimit] = await Promise.all([
+      getMonthlyUsage({ userId: session.user.id }),
+      getUsageLimit({ userId: session.user.id }),
+    ]);
+
+    const tokensUsed =
+      monthlyUsage.promptTokens + monthlyUsage.completionTokens;
+
+    if (
+      usageLimit.enabled &&
+      (monthlyUsage.costMicros >= usageLimit.monthlyCostMicros ||
+        tokensUsed >= usageLimit.monthlyTokenLimit)
+    ) {
+      return new ChatSDKError(
+        'rate_limit:api',
+        `Monthly limit reached (${(
+          usageLimit.monthlyCostMicros / 1_000_000
+        ).toFixed(2)} USD / ${usageLimit.monthlyTokenLimit} tokens).`,
+      ).toResponse();
+    }
+
     const chat = await getChatById({ id });
 
     if (!chat) {
       const title = await generateTitleFromUserMessage({
         message,
+        userId: session.user.id,
+        chatId: id,
       });
 
       await saveChat({
@@ -153,12 +188,21 @@ export async function POST(request: Request) {
           maxSteps: 5,
           experimental_activeTools:
             selectedChatModel === 'chat-model-reasoning'
-              ? []
+              ? [
+                  'addTransaction',
+                  'listTransactions',
+                  'editTransaction',
+                  'removeTransaction',
+                ]
               : [
                   'getWeather',
                   'createDocument',
                   'updateDocument',
                   'requestSuggestions',
+                  'addTransaction',
+                  'listTransactions',
+                  'editTransaction',
+                  'removeTransaction',
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
@@ -170,8 +214,27 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
+            addTransaction: addTransaction({ session, dataStream }),
+            listTransactions: listTransactions({ session }),
+            editTransaction: editTransaction({ session, dataStream }),
+            removeTransaction: removeTransaction({ session, dataStream }),
           },
-          onFinish: async ({ response }) => {
+          onFinish: async ({ response, usage }) => {
+            if (usage) {
+              await recordAiUsage({
+                userId: session.user.id,
+                chatId: id,
+                model: selectedChatModel,
+                promptTokens: usage.promptTokens,
+                completionTokens: usage.completionTokens,
+                costMicros: calculateCostMicros({
+                  model: selectedChatModel,
+                  promptTokens: usage.promptTokens,
+                  completionTokens: usage.completionTokens,
+                }),
+              });
+            }
+
             if (session.user?.id) {
               try {
                 const assistantId = getTrailingMessageId({

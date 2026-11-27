@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
+import { TransactionToolCall } from './transaction-tool-call';
 import type { UseChatHelpers } from '@ai-sdk/react';
 
 const PurePreviewMessage = ({
@@ -183,6 +184,13 @@ const PurePreviewMessage = ({
                           args={args}
                           isReadonly={isReadonly}
                         />
+                      ) : [
+                          'addTransaction',
+                          'listTransactions',
+                          'editTransaction',
+                          'removeTransaction',
+                        ].includes(toolName) ? (
+                        <TransactionToolCall toolName={toolName} args={args} />
                       ) : null}
                     </div>
                   );
@@ -212,6 +220,13 @@ const PurePreviewMessage = ({
                           result={result}
                           isReadonly={isReadonly}
                         />
+                      ) : [
+                          'addTransaction',
+                          'listTransactions',
+                          'editTransaction',
+                          'removeTransaction',
+                        ].includes(toolName) ? (
+                        <TransactionToolCall toolName={toolName} result={result} />
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       )}

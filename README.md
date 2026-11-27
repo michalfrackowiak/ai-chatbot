@@ -89,6 +89,47 @@ pnpm dev
 `REDIS_URL` is optional — without it, resumable streams are disabled and everything else works.
 Add `XAI_API_KEY` to talk to a real model.
 
+## Income, expenses and AI spend
+
+This branch adds a small personal-finance layer on top of the chatbot.
+
+### Managing money
+
+- **`/finance`** lists income and expenses with income / expense / balance cards, filters and
+  add / edit / delete forms. Amounts are stored as integer cents in USD.
+- **In chat**, just talk to the assistant: “I spent 42.50 on groceries yesterday”,
+  “how much did I spend on rent?”, “delete my last taxi expense”. The assistant uses
+  `addTransaction`, `listTransactions`, `editTransaction` and `removeTransaction` tools.
+  When a tool changes data, the sidebar finance widget and the `/finance` list re-fetch
+  immediately through a shared SWR key.
+- **Sample data**: click **Load sample data** on `/finance` (idempotent), or run
+  `pnpm db:seed` to create a `demo@chat.local` / `demo1234` account with 22 sample entries.
+- **Reports**: `/api/reports?format=html` and `/api/reports?format=pdf` produce a printable
+  HTML report and a dependency-free PDF with totals, category breakdown and all rows.
+  Buttons for both are on `/finance`.
+
+### Cost of running the app
+
+`lib/ai/pricing.ts` holds the per-million-token rates used for cost accounting, e.g.
+`grok-2-1212` / `grok-2-vision-1212` at **$2 in / $10 out** and `grok-3-mini-beta` at
+**$0.30 in / $0.50 out** (verify at <https://docs.x.ai/developers/pricing>). Every chat
+generation and title generation records prompt tokens, completion tokens and computed cost
+in the `AiUsage` table.
+
+The **admin panel** at `/admin` shows month-to-date AI spend, tokens, requests, spend by
+model, a daily chart, and a calculator for estimating monthly cost from message volume.
+Access is granted by adding your email to `ADMIN_EMAILS` (comma-separated) and signing in
+with that account. These figures cover AI tokens only — hosting, Postgres, Blob and Redis
+are billed separately.
+
+### Usage limits
+
+Chat requests are checked against a monthly cost cap and token cap. Defaults are $5 /
+2M tokens per month for registered users and $1 / 400k for guests. Admins can raise,
+lower or disable limits per user in `/admin`; overrides live in the `UsageLimit` table.
+
+Apply the new tables with `pnpm db:migrate`.
+
 ### Running the tests
 
 The Playwright suite mocks the language models, so it needs only Postgres and `AUTH_SECRET` — no

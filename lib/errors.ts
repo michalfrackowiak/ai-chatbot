@@ -89,6 +89,15 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
 
     case 'rate_limit:chat':
       return 'You have exceeded your maximum number of messages for the day. Please try again later.';
+    case 'rate_limit:api':
+      return 'You have reached your monthly AI usage limit. Please try again next month or ask an admin to raise it.';
+
+    case 'unauthorized:api':
+      return 'You need to sign in before continuing.';
+    case 'forbidden:api':
+      return 'You do not have access to this resource.';
+    case 'not_found:api':
+      return 'The requested resource was not found.';
     case 'not_found:chat':
       return 'The requested chat was not found. Please check the chat ID and try again.';
     case 'forbidden:chat':

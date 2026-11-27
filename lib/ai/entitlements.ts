@@ -24,6 +24,11 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
   },
 
   /*
-   * TODO: For users with an account and a paid membership
+   * Admins have the same chat entitlements as regular users. Their extra
+   * permissions are enforced by the /admin pages and API routes.
    */
+  admin: {
+    maxMessagesPerDay: 100,
+    availableChatModelIds: ['chat-model', 'chat-model-reasoning'],
+  },
 };

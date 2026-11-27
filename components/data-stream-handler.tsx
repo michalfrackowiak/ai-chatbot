@@ -2,9 +2,15 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useEffect, useRef } from 'react';
-import { artifactDefinitions, ArtifactKind } from './artifact';
-import { Suggestion } from '@/lib/db/schema';
+import { artifactDefinitions, type ArtifactKind } from './artifact';
+import type { Suggestion } from '@/lib/db/schema';
 import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
+import { mutate } from 'swr';
+import { toast } from 'sonner';
+import {
+  TRANSACTIONS_KEY,
+  type TransactionChange,
+} from '@/lib/finance/client';
 
 export type DataStreamDelta = {
   type:
@@ -17,8 +23,9 @@ export type DataStreamDelta = {
     | 'suggestion'
     | 'clear'
     | 'finish'
-    | 'kind';
-  content: string | Suggestion;
+    | 'kind'
+    | 'transaction-changed';
+  content: string | Suggestion | TransactionChange;
 };
 
 export function DataStreamHandler({ id }: { id: string }) {
@@ -33,6 +40,21 @@ export function DataStreamHandler({ id }: { id: string }) {
     lastProcessedIndex.current = dataStream.length - 1;
 
     (newDeltas as DataStreamDelta[]).forEach((delta: DataStreamDelta) => {
+      if (delta.type === 'transaction-changed') {
+        // Re-fetch in place: the sidebar widget and /finance page share this
+        // SWR key, so both reflect chat changes immediately.
+        mutate(TRANSACTIONS_KEY);
+        const action = (delta.content as TransactionChange)?.action;
+        toast.success(
+          action === 'deleted'
+            ? 'Transaction deleted'
+            : action === 'updated'
+              ? 'Transaction updated'
+              : 'Transaction added',
+        );
+        return;
+      }
+
       const artifactDefinition = artifactDefinitions.find(
         (artifactDefinition) => artifactDefinition.kind === artifact.kind,
       );

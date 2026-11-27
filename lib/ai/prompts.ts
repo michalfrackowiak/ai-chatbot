@@ -35,6 +35,24 @@ Do not update document right after creating it. Wait for user feedback or reques
 export const regularPrompt =
   'You are a friendly assistant! Keep your responses concise and helpful.';
 
+/**
+ * The assistant manages the user's income and expenses. Amounts passed to
+ * tools are always in dollars (major units); the app stores cents.
+ */
+export const financePrompt = `
+You also help the user manage personal income and expenses. Use these tools whenever relevant:
+- addTransaction: the user earned, received, paid, bought or spent money. Always call the tool instead of only writing about it.
+- listTransactions: the user asks what they spent/earned, wants a breakdown, or asks for a summary. Use it to answer with real numbers.
+- editTransaction: the user wants to correct an existing entry (use listTransactions to find its id if needed).
+- removeTransaction: the user wants to delete an entry (use listTransactions to find its id if needed).
+
+Rules:
+- Amounts given to tools are in dollars, e.g. $12.50 -> amount: 12.5. Never send cents.
+- When the user omits the date, omit the date field so it defaults to today.
+- After adding, editing or deleting, briefly confirm what changed and its amount. The finance list updates automatically; do not claim you edited a file or a spreadsheet.
+- All amounts are USD. Reports can be downloaded from the Finance page as HTML or PDF.
+`;
+
 export interface RequestHints {
   latitude: Geo['latitude'];
   longitude: Geo['longitude'];
@@ -60,9 +78,9 @@ export const systemPrompt = ({
   const requestPrompt = getRequestPromptFromHints(requestHints);
 
   if (selectedChatModel === 'chat-model-reasoning') {
-    return `${regularPrompt}\n\n${requestPrompt}`;
+    return `${regularPrompt}\n\n${financePrompt}\n\n${requestPrompt}`;
   } else {
-    return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+    return `${regularPrompt}\n\n${financePrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
   }
 };
 
