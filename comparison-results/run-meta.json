@@ -1,0 +1,50 @@
+[
+    {
+        "branch":  "expenses-nemotron-3-5-lightning",
+        "pr":  6,
+        "model":  "Nemotron 3.5 Lightning",
+        "migration":  "passed",
+        "unitExit":  1,
+        "functionalExit":  0
+    },
+    {
+        "branch":  "expenses-hy4",
+        "pr":  5,
+        "model":  "Tencent Hy4",
+        "migration":  "passed",
+        "unitExit":  0,
+        "functionalExit":  0
+    },
+    {
+        "branch":  "expenses-gpt-6-2-sol",
+        "pr":  4,
+        "model":  "GPT 6.2 Sol",
+        "migration":  "passed",
+        "unitExit":  0,
+        "functionalExit":  0
+    },
+    {
+        "branch":  "expenses-gpt-6-2-astra",
+        "pr":  3,
+        "model":  "GPT 6.2 Astra",
+        "migration":  "passed",
+        "unitExit":  0,
+        "functionalExit":  0
+    },
+    {
+        "branch":  "expenses-big-pickle",
+        "pr":  2,
+        "model":  "Open Code Big Pickle",
+        "migration":  "passed",
+        "unitExit":  0,
+        "functionalExit":  0
+    },
+    {
+        "branch":  "expenses-copilot-luna-6",
+        "pr":  1,
+        "model":  "Copilot Fusion GPT 6 Luna",
+        "migration":  "failed; schema push succeeded",
+        "unitExit":  0,
+        "functionalExit":  0
+    }
+]

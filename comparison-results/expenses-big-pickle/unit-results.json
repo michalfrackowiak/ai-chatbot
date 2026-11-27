@@ -1,0 +1,18 @@
+{
+  "branch": "expenses-big-pickle",
+  "suite": "unit",
+  "checks": [
+    {
+      "id": "u-money",
+      "requirement": "R1",
+      "name": "rounding and conversion are exact",
+      "status": "pass"
+    },
+    {
+      "id": "u-cost-evidence",
+      "requirement": "R5",
+      "name": "pricing module is present",
+      "status": "pass"
+    }
+  ]
+}

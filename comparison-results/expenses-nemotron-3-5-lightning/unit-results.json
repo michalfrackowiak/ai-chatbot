@@ -1,0 +1,26 @@
+{
+  "branch": "expenses-nemotron-3-5-lightning",
+  "suite": "unit",
+  "checks": [
+    {
+      "id": "u-parse-expense",
+      "requirement": "R2",
+      "name": "natural expense phrase parses",
+      "status": "fail",
+      "detail": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ null\n- {\n-   amount: '24.50',\n-   description: 'coffee',\n-   type: 'expense'\n- }\n"
+    },
+    {
+      "id": "u-parse-income",
+      "requirement": "R1",
+      "name": "natural income phrase parses",
+      "status": "fail",
+      "detail": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ null\n- {\n-   amount: '1200.50',\n-   description: 'salary',\n-   type: 'income'\n- }\n"
+    },
+    {
+      "id": "u-cost-evidence",
+      "requirement": "R5",
+      "name": "cost/usage schema is present",
+      "status": "pass"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "branch": "expenses-nemotron-3-5-lightning",
+  "suite": "browser",
+  "checks": [
+    {
+      "id": "b-chat-prompt",
+      "requirement": "R2",
+      "name": "assistant accepts a natural expense",
+      "status": "pass"
+    },
+    {
+      "id": "b-finance-list",
+      "requirement": "R1",
+      "name": "finance screen lists income and expenses",
+      "status": "fail",
+      "detail": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: not \u001b[32m/build error|internal server error|application error/i\u001b[39m\nReceived string: \u001b[31m\"01 Issue1/1Next.js 15.3.0-canary.31 (outdated)\u001b[7mBuild Error\u001b[27mError:   x You're importing a component that needs `useState`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `\\\"use client\\\"` directive../components/expenses/expenses-overview.tsxError:   x You're importing a component that needs `useState`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `\\\"use client\\\"` directive.\u001b[39m\n\u001b[31m  | \u001b[39m\n\u001b[31m  |  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client\u001b[39m\n\u001b[31m  | \u001b[39m\n\u001b[31m  | \u001b[39m\n\u001b[31m   ,-[C:\\\\Users\\\\asusj\\\\AppData\\\\Local\\\\Temp\\\\ai-chatbot-comparison\\\\expenses-nemotron-3-5-lightning\\\\components\\\\expenses\\\\expenses-overview.tsx:4:1]\u001b[39m\n\u001b[31m 1 | import { IncomeExpenseList } from './income-expense-list';\u001b[39m\n\u001b[31m 2 | import { IncomeForm } from './income-form';\u001b[39m\n\u001b[31m 3 | import { ExpenseForm } from './expense-form';\u001b[39m\n\u001b[31m 4 | import { useState } from 'react';\u001b[39m\n\u001b[31m   :          ^^^^^^^^\u001b[39m\n\u001b[31m 5 | \u001b[39m\n\u001b[31m 6 | export function ExpensesOverview() {\u001b[39m\n\u001b[31m 6 |   const [section, setSection] = useState<'incomes' | 'expenses'>('incomes');\u001b[39m\r\n\u001b[31m   `----12This error occurred during the build process and can only be dismissed by fixing the error.\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"not toContainText\" locator('body') with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    22 × locator resolved to <body>…</body>\u001b[22m\n\u001b[2m       - unexpected value \"01 Issue1/1Next.js 15.3.0-canary.31 (outdated)Build ErrorError:   x You're importing a component that needs `useState`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `\"use client\"` directive../components/expenses/expenses-overview.tsxError:   x You're importing a component that needs `useState`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `\"use client\"` directive.\u001b[22m\n\u001b[2m  | \u001b[22m\n\u001b[2m  |  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client\u001b[22m\n\u001b[2m  | \u001b[22m\n\u001b[2m  | \u001b[22m\n\u001b[2m   ,-[C:\\Users\\asusj\\AppData\\Local\\Temp\\ai-chatbot-comparison\\expenses-nemotron-3-5-lightning\\components\\expenses\\expenses-overview.tsx:4:1]\u001b[22m\n\u001b[2m 1 | import { IncomeExpenseList } from './income-expense-list';\u001b[22m\n\u001b[2m 2 | import { IncomeForm } from './income-form';\u001b[22m\n\u001b[2m 3 | import { ExpenseForm } from './expense-form';\u001b[22m\n\u001b[2m 4 | import { useState } from 'react';\u001b[22m\n\u001b[2m   :          ^^^^^^^^\u001b[22m\n\u001b[2m 5 | \u001b[22m\n\u001b[2m 6 | export function ExpensesOverview() {\u001b[22m\n\u001b[2m 6 |   const [section, setSection] = useState<'incomes' | 'expenses'>('incomes');\u001b[22m\r\n\u001b[2m   `----12This error occurred during the build process and can only be dismissed by fixing the error.\"\u001b[22m\n"
+    },
+    {
+      "id": "b-form-submit",
+      "requirement": "R1",
+      "name": "an entry can be added through the form",
+      "status": "fail",
+      "detail": "locator.evaluate: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Expenses', { exact: true }).first()\u001b[22m\n"
+    },
+    {
+      "id": "b-admin-panel",
+      "requirement": "R6",
+      "name": "admin panel renders spend and usage",
+      "status": "fail",
+      "detail": "\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/admin/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3111/api/auth/guest?redirectUrl=http%3A%2F%2Flocalhost%3A3111%2Fadmin\"\u001b[39m\nTimeout: 15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 15000ms\u001b[22m\n\u001b[2m    32 × locator resolved to <html>…</html>\u001b[22m\n\u001b[2m       - unexpected value \"http://localhost:3111/api/auth/guest?redirectUrl=http%3A%2F%2Flocalhost%3A3111%2Fadmin\"\u001b[22m\n"
+    },
+    {
+      "id": "b-admin-cost",
+      "requirement": "R5",
+      "name": "admin exposes a running cost estimate",
+      "status": "fail",
+      "detail": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nTimeout: 10000ms\nExpected pattern: \u001b[32m/cost|spend|\\$|usd/i\u001b[39m\nReceived string:  \u001b[31m\"01 Issue1/1Next.js 15.3.0-canary.31 (outdated)Build ErrorError:   x You're importing a component that needs `useState`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `\\\"use client\\\"` directive../components/expenses/expenses-overview.tsxError:   x You're importing a component that needs `useState`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `\\\"use client\\\"` directive.\u001b[39m\n\u001b[31m  |·\u001b[39m\n\u001b[31m  |  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client\u001b[39m\n\u001b[31m  |·\u001b[39m\n\u001b[31m  |·\u001b[39m\n\u001b[31m   ,-[C:\\\\Users\\\\asusj\\\\AppData\\\\Local\\\\Temp\\\\ai-chatbot-comparison\\\\expenses-nemotron-3-5-lightning\\\\components\\\\expenses\\\\expenses-overview.tsx:4:1]\u001b[39m\n\u001b[31m 1 | import { IncomeExpenseList } from './income-expense-list';\u001b[39m\n\u001b[31m 2 | import { IncomeForm } from './income-form';\u001b[39m\n\u001b[31m 3 | import { ExpenseForm } from './expense-form';\u001b[39m\n\u001b[31m 4 | import { useState } from 'react';\u001b[39m\n\u001b[31m   :          ^^^^^^^^\u001b[39m\n\u001b[31m 5 |·\u001b[39m\n\u001b[31m 6 | export function ExpensesOverview() {\u001b[39m\n\u001b[31m 6 |   const [section, setSection] = useState<'incomes' | 'expenses'>('incomes');·\u001b[39m\n\u001b[31m   `----12This error occurred during the build process and can only be dismissed by fixing the error.\"\u001b[39m\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" locator('body') with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    22 × locator resolved to <body>…</body>\u001b[22m\n\u001b[2m       - unexpected value \"01 Issue1/1Next.js 15.3.0-canary.31 (outdated)Build ErrorError:   x You're importing a component that needs `useState`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `\"use client\"` directive../components/expenses/expenses-overview.tsxError:   x You're importing a component that needs `useState`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `\"use client\"` directive.\u001b[22m\n\u001b[2m  | \u001b[22m\n\u001b[2m  |  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client\u001b[22m\n\u001b[2m  | \u001b[22m\n\u001b[2m  | \u001b[22m\n\u001b[2m   ,-[C:\\Users\\asusj\\AppData\\Local\\Temp\\ai-chatbot-comparison\\expenses-nemotron-3-5-lightning\\components\\expenses\\expenses-overview.tsx:4:1]\u001b[22m\n\u001b[2m 1 | import { IncomeExpenseList } from './income-expense-list';\u001b[22m\n\u001b[2m 2 | import { IncomeForm } from './income-form';\u001b[22m\n\u001b[2m 3 | import { ExpenseForm } from './expense-form';\u001b[22m\n\u001b[2m 4 | import { useState } from 'react';\u001b[22m\n\u001b[2m   :          ^^^^^^^^\u001b[22m\n\u001b[2m 5 | \u001b[22m\n\u001b[2m 6 | export function ExpensesOverview() {\u001b[22m\n\u001b[2m 6 |   const [section, setSection] = useState<'incomes' | 'expenses'>('incomes');\u001b[22m\r\n\u001b[2m   `----12This error occurred during the build process and can only be dismissed by fixing the error.\"\u001b[22m\n"
+    },
+    {
+      "id": "b-admin-limits",
+      "requirement": "R6",
+      "name": "a usage limit can be set",
+      "status": "fail",
+      "detail": "locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[placeholder=\"e.g., 50\"]')\u001b[22m\n"
+    },
+    {
+      "id": "b-api-create",
+      "requirement": "R1",
+      "name": "no finance API on this branch",
+      "status": "skip",
+      "detail": ""
+    },
+    {
+      "id": "b-reports",
+      "requirement": "R4",
+      "name": "no report API on this branch",
+      "status": "skip",
+      "detail": ""
+    },
+    {
+      "id": "b-sample-data",
+      "requirement": "R3",
+      "name": "no sample-data API discovered",
+      "status": "skip",
+      "detail": ""
+    }
+  ]
+}

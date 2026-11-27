@@ -1,0 +1,66 @@
+{
+  "branch": "expenses-gpt-6-2-sol",
+  "suite": "browser",
+  "checks": [
+    {
+      "id": "b-chat-prompt",
+      "requirement": "R2",
+      "name": "assistant accepts a natural expense",
+      "status": "pass"
+    },
+    {
+      "id": "b-finance-list",
+      "requirement": "R1",
+      "name": "finance screen lists income and expenses",
+      "status": "pass"
+    },
+    {
+      "id": "b-form-submit",
+      "requirement": "R1",
+      "name": "an entry can be added through the form",
+      "status": "pass"
+    },
+    {
+      "id": "b-admin-login",
+      "requirement": "R6",
+      "name": "administrator can sign in",
+      "status": "pass"
+    },
+    {
+      "id": "b-admin-panel",
+      "requirement": "R6",
+      "name": "admin panel renders spend and usage",
+      "status": "pass"
+    },
+    {
+      "id": "b-admin-cost",
+      "requirement": "R5",
+      "name": "admin exposes a running cost estimate",
+      "status": "pass"
+    },
+    {
+      "id": "b-admin-limits",
+      "requirement": "R6",
+      "name": "a usage limit can be set",
+      "status": "pass"
+    },
+    {
+      "id": "b-api-create",
+      "requirement": "R1",
+      "name": "API creates an entry that appears in the list",
+      "status": "pass"
+    },
+    {
+      "id": "b-reports",
+      "requirement": "R4",
+      "name": "HTML and PDF reports render the new entry",
+      "status": "pass"
+    },
+    {
+      "id": "b-sample-data",
+      "requirement": "R3",
+      "name": "sample data loads into the ledger",
+      "status": "pass"
+    }
+  ]
+}

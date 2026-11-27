@@ -1,0 +1,30 @@
+{
+  "branch": "expenses-hy4",
+  "suite": "unit",
+  "checks": [
+    {
+      "id": "u-money",
+      "requirement": "R1",
+      "name": "dollars convert to cents",
+      "status": "pass"
+    },
+    {
+      "id": "u-validation",
+      "requirement": "R1",
+      "name": "transaction input is validated",
+      "status": "pass"
+    },
+    {
+      "id": "u-limits",
+      "requirement": "R6",
+      "name": "usage limit input is validated",
+      "status": "pass"
+    },
+    {
+      "id": "u-cost-evidence",
+      "requirement": "R5",
+      "name": "pricing and formatting work",
+      "status": "pass"
+    }
+  ]
+}
