@@ -4,7 +4,9 @@ import type { User } from 'next-auth';
 import { useRouter } from 'next/navigation';
 
 import { PlusIcon } from '@/components/icons';
+import { Gauge, Wallet } from 'lucide-react';
 import { SidebarHistory } from '@/components/sidebar-history';
+import { TransactionSummary } from '@/components/transaction-summary';
 import { SidebarUserNav } from '@/components/sidebar-user-nav';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,13 +14,23 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarGroup,
+  SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-export function AppSidebar({ user }: { user: User | undefined }) {
+export function AppSidebar({
+  user,
+  isAdmin,
+}: {
+  user: User | undefined;
+  isAdmin: boolean;
+}) {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
 
@@ -59,6 +71,30 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Finance</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/transactions">
+                  <Wallet />
+                  <span>Income &amp; expenses</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            {isAdmin && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin">
+                    <Gauge />
+                    <span>Admin</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+          </SidebarMenu>
+        </SidebarGroup>
+        <TransactionSummary />
         <SidebarHistory user={user} />
       </SidebarContent>
       <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>

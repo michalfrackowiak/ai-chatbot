@@ -34,6 +34,18 @@
 - [Auth.js](https://authjs.dev)
   - Simple and secure authentication
 
+## Income, expenses & AI usage
+
+This branch adds personal finance tracking to the chatbot:
+
+- Add, edit and delete income/expenses on **/transactions**, or just ask the assistant in chat (`"add $12.50 for groceries today"`). The sidebar list refreshes as soon as a chat tool writes a transaction.
+- Sample entries: run `pnpm db:seed` (optionally pass an email, e.g. `pnpm db:seed me@example.com`). It creates `demo@example.com` / `password` if needed and skips accounts that already have transactions.
+- Reports: **/transactions** has HTML (opens in a new tab) and PDF download buttons, optionally filtered by date range.
+- Admin: emails in `ADMIN_EMAILS` get **/admin**, showing estimated AI spend per user and global/per-user limits (daily messages and monthly spend). `-1` means unlimited, blank means inherit the global default.
+- A [cost estimate](docs/COST_ESTIMATE.md) covers hosting, database and model usage.
+
+Run `pnpm db:migrate` before starting the app; migration `0007` creates the new tables.
+
 ## Model Providers
 
 This template ships with [xAI](https://x.ai) `grok-2-1212` as the default chat model. However, with the [AI SDK](https://sdk.vercel.ai/docs), you can switch LLM providers to [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.

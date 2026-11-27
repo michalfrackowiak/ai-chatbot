@@ -35,6 +35,17 @@ Do not update document right after creating it. Wait for user feedback or reques
 export const regularPrompt =
   'You are a friendly assistant! Keep your responses concise and helpful.';
 
+export const financePrompt = `
+The app tracks the user's income and expenses. Use the \`manageTransactions\` tool whenever the user asks to record, list, change or delete a transaction.
+
+- Map "spent/paid/bought" to an expense and "earned/received/salary" to income.
+- Amounts passed to the tool are currency units (12.50 means $12.50), not cents.
+- If the user gives no date, use today's date. If they give a relative date, resolve it before calling the tool.
+- Choose a short, sensible category (e.g. groceries, salary, rent, transport) unless the user specifies one.
+- Use \`list\` first when the user refers to a transaction indirectly ("my last coffee") so you can get its id.
+- After a successful write, confirm what changed in one short sentence. The transaction list updates automatically.
+`;
+
 export interface RequestHints {
   latitude: Geo['latitude'];
   longitude: Geo['longitude'];
@@ -62,7 +73,7 @@ export const systemPrompt = ({
   if (selectedChatModel === 'chat-model-reasoning') {
     return `${regularPrompt}\n\n${requestPrompt}`;
   } else {
-    return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+    return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}\n\n${financePrompt}`;
   }
 };
 

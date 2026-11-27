@@ -9,6 +9,9 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  integer,
+  jsonb,
+  index,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -168,3 +171,76 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const transaction = pgTable(
+  'Transaction',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    type: varchar('type', { enum: ['income', 'expense'] }).notNull(),
+    // Minor units (cents) to avoid floating point rounding in money math.
+    amount: integer('amount').notNull(),
+    category: varchar('category', { length: 64 }).notNull(),
+    description: text('description').notNull(),
+    occurredAt: timestamp('occurredAt').notNull().defaultNow(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    source: varchar('source', { enum: ['manual', 'chat', 'seed'] })
+      .notNull()
+      .default('manual'),
+  },
+  (table) => ({
+    userDateIdx: index('Transaction_userId_occurredAt_idx').on(
+      table.userId,
+      table.occurredAt,
+    ),
+  }),
+);
+
+export type Transaction = InferSelectModel<typeof transaction>;
+
+export const aiUsage = pgTable(
+  'AiUsage',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    chatId: uuid('chatId').references(() => chat.id),
+    model: varchar('model', { length: 64 }).notNull(),
+    promptTokens: integer('promptTokens').notNull().default(0),
+    completionTokens: integer('completionTokens').notNull().default(0),
+    // USD encoded as millionths so integer math stays exact.
+    costMicros: integer('costMicros').notNull().default(0),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    userDateIdx: index('AiUsage_userId_createdAt_idx').on(
+      table.userId,
+      table.createdAt,
+    ),
+  }),
+);
+
+export type AiUsage = InferSelectModel<typeof aiUsage>;
+
+export const usageLimit = pgTable('UsageLimit', {
+  userId: uuid('userId')
+    .primaryKey()
+    .notNull()
+    .references(() => user.id),
+  maxMessagesPerDay: integer('maxMessagesPerDay'),
+  maxMonthlySpendMicros: integer('maxMonthlySpendMicros'),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type UsageLimit = InferSelectModel<typeof usageLimit>;
+
+export const appSetting = pgTable('AppSetting', {
+  key: varchar('key', { length: 64 }).primaryKey().notNull(),
+  value: jsonb('value').notNull(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type AppSetting = InferSelectModel<typeof appSetting>;

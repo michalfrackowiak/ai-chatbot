@@ -5,7 +5,7 @@ import {
   smoothStream,
   streamText,
 } from 'ai';
-import { auth, type UserType } from '@/app/(auth)/auth';
+import { auth } from '@/app/(auth)/auth';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
 import {
   createStreamId,
@@ -23,9 +23,14 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import { manageTransactions } from '@/lib/ai/tools/manage-transactions';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
-import { entitlementsByUserType } from '@/lib/ai/entitlements';
+import {
+  getEffectiveLimits,
+  getMonthlySpendMicros,
+  recordAiUsage,
+} from '@/lib/db/usage';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
 import {
@@ -81,15 +86,32 @@ export async function POST(request: Request) {
       return new ChatSDKError('unauthorized:chat').toResponse();
     }
 
-    const userType: UserType = session.user.type;
+    const [messageCount, limits] = await Promise.all([
+      getMessageCountByUserId({
+        id: session.user.id,
+        differenceInHours: 24,
+      }),
+      getEffectiveLimits({
+        userId: session.user.id,
+        userType: session.user.type,
+      }),
+    ]);
 
-    const messageCount = await getMessageCountByUserId({
-      id: session.user.id,
-      differenceInHours: 24,
-    });
-
-    if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
+    if (
+      limits.maxMessagesPerDay !== -1 &&
+      messageCount >= limits.maxMessagesPerDay
+    ) {
       return new ChatSDKError('rate_limit:chat').toResponse();
+    }
+
+    if (limits.maxMonthlySpendMicros !== -1) {
+      const monthlySpendMicros = await getMonthlySpendMicros({
+        userId: session.user.id,
+      });
+
+      if (monthlySpendMicros >= limits.maxMonthlySpendMicros) {
+        return new ChatSDKError('rate_limit:usage').toResponse();
+      }
     }
 
     const chat = await getChatById({ id });
@@ -159,6 +181,7 @@ export async function POST(request: Request) {
                   'createDocument',
                   'updateDocument',
                   'requestSuggestions',
+                  'manageTransactions',
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
@@ -170,8 +193,9 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
+            manageTransactions: manageTransactions({ session, dataStream }),
           },
-          onFinish: async ({ response }) => {
+          onFinish: async ({ response, usage }) => {
             if (session.user?.id) {
               try {
                 const assistantId = getTrailingMessageId({
@@ -202,8 +226,16 @@ export async function POST(request: Request) {
                     },
                   ],
                 });
+
+                await recordAiUsage({
+                  userId: session.user.id,
+                  chatId: id,
+                  model: selectedChatModel,
+                  promptTokens: usage?.promptTokens ?? 0,
+                  completionTokens: usage?.completionTokens ?? 0,
+                });
               } catch (_) {
-                console.error('Failed to save chat');
+                console.error('Failed to save chat or record AI usage');
               }
             }
           },
