@@ -1,3 +1,4 @@
+import type { Request as PlaywrightRequest } from '@playwright/test';
 import { expect, test } from '../fixtures';
 import { AuthPage } from '../pages/auth';
 import { generateRandomTestUser } from '../helpers';
@@ -15,13 +16,13 @@ test.describe
         throw new Error('Failed to load page');
       }
 
-      let request = response.request();
+      let request: PlaywrightRequest | null = response.request();
 
       const chain = [];
 
       while (request) {
         chain.unshift(request.url());
-        request = request.redirectedFrom();
+        request = request.redirectedFrom() ?? null;
       }
 
       expect(chain).toEqual([
@@ -57,13 +58,13 @@ test.describe
         throw new Error('Failed to load page');
       }
 
-      let request = response.request();
+      let request: PlaywrightRequest | null = response.request();
 
       const chain = [];
 
       while (request) {
         chain.unshift(request.url());
-        request = request.redirectedFrom();
+        request = request.redirectedFrom() ?? null;
       }
 
       expect(chain).toEqual(['http://localhost:3000/']);

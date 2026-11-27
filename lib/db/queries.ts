@@ -12,8 +12,7 @@ import {
   lt,
   type SQL,
 } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { db } from './client';
 
 import {
   user,
@@ -27,6 +26,7 @@ import {
   type DBMessage,
   type Chat,
   stream,
+  aiUsage,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -37,10 +37,6 @@ import { ChatSDKError } from '../errors';
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
-
-// biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
-const db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
   try {
@@ -108,6 +104,11 @@ export async function deleteChatById({ id }: { id: string }) {
   try {
     await db.delete(vote).where(eq(vote.chatId, id));
     await db.delete(message).where(eq(message.chatId, id));
+    // Keep spend history, but detach it from the chat being deleted.
+    await db
+      .update(aiUsage)
+      .set({ chatId: null })
+      .where(eq(aiUsage.chatId, id));
     await db.delete(stream).where(eq(stream.chatId, id));
 
     const [chatsDeleted] = await db

@@ -15,7 +15,11 @@ export type Surface =
   | 'history'
   | 'vote'
   | 'document'
-  | 'suggestions';
+  | 'suggestions'
+  | 'transaction'
+  | 'admin'
+  | 'report'
+  | 'usage';
 
 export type ErrorCode = `${ErrorType}:${Surface}`;
 
@@ -31,6 +35,10 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   vote: 'response',
   document: 'response',
   suggestions: 'response',
+  transaction: 'response',
+  admin: 'response',
+  report: 'response',
+  usage: 'response',
 };
 
 export class ChatSDKError extends Error {
@@ -97,6 +105,21 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return 'You need to sign in to view this chat. Please sign in and try again.';
     case 'offline:chat':
       return "We're having trouble sending your message. Please check your internet connection and try again.";
+    case 'rate_limit:usage':
+      return 'You have reached a usage limit (daily messages or monthly AI spend). Please try again later or contact an administrator.';
+
+    case 'bad_request:transaction':
+      return 'Please check the transaction details and try again.';
+    case 'unauthorized:transaction':
+      return 'You need to sign in to manage income and expenses.';
+    case 'not_found:transaction':
+      return 'The transaction was not found.';
+    case 'bad_request:report':
+      return 'The report request was invalid. Check the date range and format.';
+    case 'bad_request:admin':
+      return 'The usage limit could not be saved. Please check the values.';
+    case 'forbidden:admin':
+      return 'Your account is not an administrator.';
 
     case 'not_found:document':
       return 'The requested document was not found. Please check the document ID and try again.';

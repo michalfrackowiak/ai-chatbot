@@ -1,9 +1,10 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
+import { useSWRConfig } from 'swr';
 import { useEffect, useRef } from 'react';
-import { artifactDefinitions, ArtifactKind } from './artifact';
-import { Suggestion } from '@/lib/db/schema';
+import { artifactDefinitions, type ArtifactKind } from './artifact';
+import type { Suggestion } from '@/lib/db/schema';
 import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
 
 export type DataStreamDelta = {
@@ -17,12 +18,14 @@ export type DataStreamDelta = {
     | 'suggestion'
     | 'clear'
     | 'finish'
-    | 'kind';
+    | 'kind'
+    | 'transaction-changed';
   content: string | Suggestion;
 };
 
 export function DataStreamHandler({ id }: { id: string }) {
   const { data: dataStream } = useChat({ id });
+  const { mutate } = useSWRConfig();
   const { artifact, setArtifact, setMetadata } = useArtifact();
   const lastProcessedIndex = useRef(-1);
 
@@ -33,6 +36,14 @@ export function DataStreamHandler({ id }: { id: string }) {
     lastProcessedIndex.current = dataStream.length - 1;
 
     (newDeltas as DataStreamDelta[]).forEach((delta: DataStreamDelta) => {
+      if (delta.type === 'transaction-changed') {
+        void mutate(
+          (key) =>
+            typeof key === 'string' && key.startsWith('/api/transactions'),
+        );
+        return;
+      }
+
       const artifactDefinition = artifactDefinitions.find(
         (artifactDefinition) => artifactDefinition.kind === artifact.kind,
       );
@@ -90,7 +101,7 @@ export function DataStreamHandler({ id }: { id: string }) {
         }
       });
     });
-  }, [dataStream, setArtifact, setMetadata, artifact]);
+  }, [dataStream, setArtifact, setMetadata, artifact, mutate]);
 
   return null;
 }
